@@ -11,7 +11,6 @@ public class PlayerProjectileMovement : MonoBehaviour
     private bool Initialised = false;   //Waits until values movement values have been provided by the player
     private Vector3 MovementDirection;  //Direction this projectile should be travelling
     private float MoveSpeed = 8f;  //How fast this projectile travels
-    private float LifetimeLeft = 8f;    //Seconds remaining until the projectile destroys itself
 
     //Called from the PlayerControls when it spawns the projectile into the game
     public void InitializeProjectile(Vector3 MovementDirection, Vector3 ShipVelocity)
@@ -29,9 +28,8 @@ public class PlayerProjectileMovement : MonoBehaviour
             //Move the projectile forward
             Travel();
 
-            //Destroy the projectile when its lifetime expires
-            LifetimeLeft -= Time.deltaTime;
-            if (LifetimeLeft <= 0.0f)
+            //Destroy the projectile if it goes outside the screen
+            if (!ScreenBounds.IsPosInside(transform.position))
                 Destroy(gameObject);
         }
     }
@@ -42,11 +40,8 @@ public class PlayerProjectileMovement : MonoBehaviour
         //Create a new movement vector to apply to the projectile
         Vector3 MovementVector = MovementDirection.normalized * MoveSpeed;
 
-        //Figure out a new location for the projectile based on this movement vector
+        //Move the projectile to its new location using by applying the movement vector
         Vector3 NewPos = transform.position + MovementVector * Time.deltaTime;
-        NewPos = ScreenBounds.KeepPosInside(NewPos);
-
-        //Move the projectile to its new location
         transform.position = NewPos;
     }
 

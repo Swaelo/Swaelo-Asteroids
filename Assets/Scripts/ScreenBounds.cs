@@ -31,4 +31,15 @@ public static class ScreenBounds
         //Return the final location
         return InsidePos;
     }
+
+    //Checks if a position lies within the screenbounds
+    public static bool IsPosInside(Vector3 Pos)
+    {
+        if (Pos.x < XPosRange.x ||
+            Pos.x > XPosRange.y ||
+            Pos.y < YPosRange.x ||
+            Pos.y > YPosRange.y)
+            return false;
+        return true;
+    }
 }
