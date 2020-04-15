@@ -5,6 +5,9 @@ TagManager:
   serializedVersion: 2
   tags:
   - PlayerProjectile
+  - Asteroid
+  - Saucer
+  - SaucerProjectile
   layers:
   - Default
   - TransparentFX
@@ -16,9 +19,9 @@ TagManager:
   - 
   - Player
   - PlayerProjectile
-  - 
-  - 
-  - 
+  - Asteroid
+  - Saucer
+  - SaucerProjectile
   - 
   - 
   - 

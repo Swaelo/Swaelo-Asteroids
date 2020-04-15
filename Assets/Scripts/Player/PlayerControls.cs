@@ -15,18 +15,25 @@ public class PlayerControls : MonoBehaviour
     //Movement
     private Vector3 CurrentVelocity = new Vector3(0f, 0f, 0f);  //Current direction of movement
     private Vector2 VelocityRange = new Vector2(-8.5f, 8.5f);   //Min/Max velocity limits
-    private float ForwardThrusterPower = 15;   //Strength of the ships forward thrusters
-    private float ReverseThrusterPower = -7.5f;  //Strength of the ships reverse thrusters
+    private float ForwardThrusterPower = 8f;   //Strength of the ships forward thrusters
+    private float ReverseThrusterPower = -3.5f;  //Strength of the ships reverse thrusters
     private float FrictionStrength = 1.25f;  //Applied to slowly bring the ship to a stop
 
     //Shooting
     public GameObject ProjectilePrefab; //Prefab which the player shoots
     private float ProjectileSpawnDistance = 0.5f;  //How far in front of the ship to spawn projectiles
 
+    //Thruster Sound
+    public AudioSource SoundPlayer;
+    private bool PlayingThrusterSound = false;
+
     private void Start()
     {
         //Get the initial rotation value
         CurrentRotation = transform.rotation.z;
+        //Start and immediately pause the thruster sound
+        SoundPlayer.Play();
+        SoundPlayer.Pause();
     }
 
     private void Update()
@@ -45,7 +52,8 @@ public class PlayerControls : MonoBehaviour
             //Spawn a new projectile and give it its movement values
             Vector3 SpawnPos = transform.position + transform.up * ProjectileSpawnDistance;
             GameObject Projectile = Instantiate(ProjectilePrefab, SpawnPos, Quaternion.identity);
-            Projectile.GetComponent<PlayerProjectileMovement>().InitializeProjectile(transform.up, CurrentVelocity);
+            Projectile.GetComponent<ProjectileMovement>().InitializeProjectile(transform.up, 8f + CurrentVelocity.magnitude);
+            SoundEffectsPlayer.Instance.PlaySound("PlayerShoot");
         }
     }
 
@@ -59,6 +67,19 @@ public class PlayerControls : MonoBehaviour
         bool ThrustReverse = Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow);
         if (ThrustReverse)
             CurrentVelocity += transform.up * ReverseThrusterPower * Time.deltaTime;
+
+        //Start looping the thruster sound effect if we arent
+        if(ThrustForward && !PlayingThrusterSound)
+        {
+            PlayingThrusterSound = true;
+            SoundPlayer.UnPause();
+        }
+        //Otherwise stop looping if it shouldnt be anymore
+        else if(!ThrustForward && PlayingThrusterSound)
+        {
+            PlayingThrusterSound = false;
+            SoundPlayer.Pause();
+        }
 
         //Clamp velocity magnitude
         if (CurrentVelocity.magnitude < 0.0f)
@@ -74,7 +95,7 @@ public class PlayerControls : MonoBehaviour
 
         //Get new location value for the ship, kept inside the screen borders
         Vector3 NewPos = transform.position + CurrentVelocity * Time.deltaTime;
-        NewPos = ScreenBounds.KeepPosInside(NewPos);
+        NewPos = ScreenBounds.ClampPosInside(NewPos);
 
         //Move to the new location
         transform.position = NewPos;

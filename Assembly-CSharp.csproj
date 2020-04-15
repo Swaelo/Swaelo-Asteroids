@@ -63,9 +63,19 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\Scripts\PlayerControls.cs" />
-    <Compile Include="Assets\Scripts\PlayerProjectileMovement.cs" />
-    <Compile Include="Assets\Scripts\ScreenBounds.cs" />
+    <Compile Include="Assets\Scripts\Asteroids\AsteroidDrift.cs" />
+    <Compile Include="Assets\Scripts\Asteroids\AsteroidManager.cs" />
+    <Compile Include="Assets\Scripts\Asteroids\AsteroidSize.cs" />
+    <Compile Include="Assets\Scripts\Enemies\LargeSaucerAI.cs" />
+    <Compile Include="Assets\Scripts\Enemies\SaucerProjectileCollisionHandler.cs" />
+    <Compile Include="Assets\Scripts\Enemies\SaucerSize.cs" />
+    <Compile Include="Assets\Scripts\Enemies\SmallSaucerAI.cs" />
+    <Compile Include="Assets\Scripts\Player\PlayerControls.cs" />
+    <Compile Include="Assets\Scripts\Player\PlayerProjectileCollisionHandler.cs" />
+    <Compile Include="Assets\Scripts\ProjectileMovement.cs" />
+    <Compile Include="Assets\Scripts\Systems\GameState.cs" />
+    <Compile Include="Assets\Scripts\Systems\ScreenBounds.cs" />
+    <Compile Include="Assets\Scripts\Systems\SoundEffectsPlayer.cs" />
     <Reference Include="Unity.Timeline.Editor">
       <HintPath>C:/Users/Swaelo/Desktop/Swaelo-Asteroids/Library/ScriptAssemblies/Unity.Timeline.Editor.dll</HintPath>
     </Reference>
