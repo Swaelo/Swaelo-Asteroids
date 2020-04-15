@@ -37,7 +37,7 @@ public class SoundEffectsPlayer : MonoBehaviour
             if(CurrentSound.Name == SoundName)
             {
                 //Play the sound and exit out of the loop
-                int SoundSelection = Random.Range(1, CurrentSound.SoundClips.Length);
+                int SoundSelection = Random.Range(0, CurrentSound.SoundClips.Length-1);
                 SoundPlayer.PlayOneShot(CurrentSound.SoundClips[SoundSelection], VolumeScale);
                 return;
             }

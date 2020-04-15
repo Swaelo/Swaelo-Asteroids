@@ -74,7 +74,14 @@ public class GameState : MonoBehaviour
     {
         //Play start of game / new level sound effect
         SoundEffectsPlayer.Instance.PlaySound(FirstLevel ? "GameStart" : "LevelComplete");
-        //Spawn in all the new asteroids for this level
-
+        //Increase the level counter and asteroid spawn count if we are progressing from a previous level
+        if(!FirstLevel)
+        {
+            Level++;
+            if (AsteroidCount < MaxAsteroidCount)
+                AsteroidCount++;
+        }
+        //Spawn in all the new asteroids for this level, then increase the counter ready for next level
+        AsteroidManager.Instance.PrepareNewLevel(AsteroidCount);
     }
 }

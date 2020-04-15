@@ -26,10 +26,42 @@ public class AsteroidManager : MonoBehaviour
     private float HalfMediumSpaceNeeded = 0.85f;
     private float HalfSmallSpaceNeeded = 0.35f;
 
+    //Level Preperation
+    private float RotationPerSpawn; //How much to rotate around after each spawn to spread them in a circle pattern
+    private Vector3 SpawnDirection = new Vector3(0f, 1f, 0f);   //First asteroid will be spawned directly north of the player
+    private Vector2 SpawnRange = new Vector2(1.5f, 7.5f);   //Distance range to spawn asteroids within
+
     //Spawns in a set number of large asteroids for the beginning of a new level
     public void PrepareNewLevel(int AsteroidCount)
     {
+        //Figure out how much the spawn direction vector needs to be rotated after each spawn to spread everything out in a nice circle
+        RotationPerSpawn = 360f / (AsteroidCount-1);
+        
+        //Loop through and spawn in all the asteroids required
+        for(int i = 0; i < AsteroidCount; i++)
+        {
+            //Grab a random asteroid prefab, and setup its spawn position and rotation values
+            GameObject AsteroidPrefab = GetAsteroidPrefab(AsteroidSizes.Large);
+            Vector3 SpawnPos = GetNextSpawnPos();
+            Quaternion SpawnRot = Quaternion.Euler(0f, 0f, Random.Range(-360f, 360f));
+            //Spawn in the new asteroid, and add it to the active asteroids tracking list
+            GameObject AsteroidSpawn = Instantiate(AsteroidPrefab, SpawnPos, SpawnRot);
+            ActiveAsteroids.Add(AsteroidSpawn);
+        }
+    }
 
+    //Rotates the spawn direction vector, then returns the spawn location for the next asteroid
+    private Vector3 GetNextSpawnPos()
+    {
+        //Get a new spawn location a random distance in the current spawn direction, making sure its inside the level boundaries
+        Vector3 NewSpawnPos = SpawnDirection * Random.Range(SpawnRange.x, SpawnRange.y);
+        NewSpawnPos = ScreenBounds.ClampPosInside(NewSpawnPos);
+
+        //Rotate the spawn direction vector so its ready for the next time this function is called
+        SpawnDirection = Quaternion.AngleAxis(-RotationPerSpawn, Vector3.forward) * SpawnDirection;
+
+        //Return the new spawn location
+        return NewSpawnPos;
     }
 
     //Returns a random asteroid prefab of the specified size
