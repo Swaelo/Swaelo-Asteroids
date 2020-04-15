@@ -33,6 +33,7 @@ public class GameState : MonoBehaviour
     private int FreeLifeInterval = 10000;   //How far apart each score milestone for another free life
 
     //Level Progression
+    public bool DebugMode = false;  //Game wont start automatically when this is true
     public int Level = 1;   //Current level
     private int AsteroidCount = 4;  //How many asteroids to spawn at the start of the next round, increases by 1 each round
     private int MaxAsteroidCount = 11;  //Maximum number of asteroids that can be spawned in at the start of a new level
@@ -40,7 +41,8 @@ public class GameState : MonoBehaviour
     private void Start()
     {
         //Start the first level
-        NextLevel(true);
+        if(!DebugMode)
+            NextLevel(true);
     }
 
     //Awards points to the player
@@ -74,6 +76,7 @@ public class GameState : MonoBehaviour
     {
         //Play start of game / new level sound effect
         SoundEffectsPlayer.Instance.PlaySound(FirstLevel ? "GameStart" : "LevelComplete");
+
         //Increase the level counter and asteroid spawn count if we are progressing from a previous level
         if(!FirstLevel)
         {
@@ -81,6 +84,7 @@ public class GameState : MonoBehaviour
             if (AsteroidCount < MaxAsteroidCount)
                 AsteroidCount++;
         }
+
         //Spawn in all the new asteroids for this level, then increase the counter ready for next level
         AsteroidManager.Instance.PrepareNewLevel(AsteroidCount);
     }

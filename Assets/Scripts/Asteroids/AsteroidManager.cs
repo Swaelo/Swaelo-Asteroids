@@ -67,9 +67,10 @@ public class AsteroidManager : MonoBehaviour
     //Returns a random asteroid prefab of the specified size
     private GameObject GetAsteroidPrefab(AsteroidSizes Size)
     {
-        int Selection = Random.Range(1,
-            Size == AsteroidSizes.Small ? 6 :
-            Size == AsteroidSizes.Medium ? 4 : 3);
+        //Select one of the prefabs of the specified size at random
+        int MaxSelection = Size == AsteroidSizes.Small ? 5 : 2;
+        int Selection = Random.Range(0, MaxSelection);
+        //Return it from the prefab list
         return Size == AsteroidSizes.Small ? SmallPrefabs[Selection] :
             Size == AsteroidSizes.Medium ? MediumPrefabs[Selection] :
             LargePrefabs[Selection];
