@@ -19,7 +19,7 @@ public class AsteroidManager : MonoBehaviour
     public GameObject[] SmallPrefabs;
 
     //Active Asteroids
-    public List<GameObject> ActiveAsteroids = new List<GameObject>();
+    public List<GameObject> ActiveAsteroids = new List<GameObject>();   //List of all the asteroids currently active in the game
     public int MaxAsteroidCount = 26;   //Maximum number of asteroids that can be active at any one time
 
     //Minimum spawning distance between asteroids
@@ -29,16 +29,28 @@ public class AsteroidManager : MonoBehaviour
     //Level Preperation
     private float RotationPerSpawn; //How much to rotate around after each spawn to spread them in a circle pattern
     private Vector3 SpawnDirection = new Vector3(0f, 1f, 0f);   //First asteroid will be spawned directly north of the player
-    private Vector2 SpawnRange = new Vector2(1.5f, 7.5f);   //Distance range to spawn asteroids within
+    private Vector2 SpawnDistanceRange = new Vector2(2.5f, 9.5f);   //How far the asteroids will be spawned from the middle of the level
+
+    //The asteroids are blown apart from one another when they explode
+    private Vector2 FragmentExplosionForce = new Vector2(2.5f, 6.25f);
+
+    //Cleans up anything left over in order to start a new game
+    public void PrepareGameRestart()
+    {
+        //Destroy any asteroids that are left behind
+        foreach (GameObject Asteroid in ActiveAsteroids)
+            Destroy(Asteroid);
+        ActiveAsteroids.Clear();
+    }
 
     //Spawns in a set number of large asteroids for the beginning of a new level
     public void PrepareNewLevel(int AsteroidCount)
     {
         //Figure out how much the spawn direction vector needs to be rotated after each spawn to spread everything out in a nice circle
-        RotationPerSpawn = 360f / (AsteroidCount-1);
-        
+        RotationPerSpawn = 360f / (AsteroidCount - 1);
+
         //Loop through and spawn in all the asteroids required
-        for(int i = 0; i < AsteroidCount; i++)
+        for (int i = 0; i < AsteroidCount; i++)
         {
             //Grab a random asteroid prefab, and setup its spawn position and rotation values
             GameObject AsteroidPrefab = GetAsteroidPrefab(AsteroidSizes.Large);
@@ -53,15 +65,16 @@ public class AsteroidManager : MonoBehaviour
     //Rotates the spawn direction vector, then returns the spawn location for the next asteroid
     private Vector3 GetNextSpawnPos()
     {
-        //Get a new spawn location a random distance in the current spawn direction, making sure its inside the level boundaries
-        Vector3 NewSpawnPos = SpawnDirection * Random.Range(SpawnRange.x, SpawnRange.y);
-        NewSpawnPos = ScreenBounds.ClampPosInside(NewSpawnPos);
-
-        //Rotate the spawn direction vector so its ready for the next time this function is called
+        //Get the furthest possible spawn location in the current direction, then calcuate its distance from the center
+        Vector3 MaxDistanceSpawnPos = SpawnDirection * SpawnDistanceRange.y;
+        MaxDistanceSpawnPos = ScreenBounds.ClampPosInside(MaxDistanceSpawnPos);
+        float MaxSpawnDistance = Vector3.Distance(Vector3.zero, MaxDistanceSpawnPos);
+        //Get the new spawn pos somewhere along that line
+        float SpawnDistance = Random.Range(SpawnDistanceRange.x, MaxSpawnDistance);
+        Vector3 SpawnPos = SpawnDirection * SpawnDistance;
+        //Rotate the spawn direction ready for next time, then return the final spawn position
         SpawnDirection = Quaternion.AngleAxis(-RotationPerSpawn, Vector3.forward) * SpawnDirection;
-
-        //Return the new spawn location
-        return NewSpawnPos;
+        return SpawnPos;
     }
 
     //Returns a random asteroid prefab of the specified size
@@ -106,6 +119,12 @@ public class AsteroidManager : MonoBehaviour
         Vector3 FirstSpawnPos = SpawnPos + SpawnDirection * (Size == AsteroidSizes.Medium ? HalfMediumSpaceNeeded : HalfSmallSpaceNeeded);
         Vector3 SecondSpawnPos = SpawnPos - SpawnDirection * (Size == AsteroidSizes.Medium ? HalfMediumSpaceNeeded : HalfSmallSpaceNeeded);
 
+        //When the fragments are spawned in, they should be pushed away from the point of the explosion
+        Vector3 FirstSpawnExplosionDirection = Vector3.Normalize(FirstSpawnPos - SpawnPos);
+        float FirstSpawnExplosionForce = Random.Range(FragmentExplosionForce.x, FragmentExplosionForce.y);
+        Vector3 SecondSpawnExplosionDirection = Vector3.Normalize(SecondSpawnPos - SpawnPos);
+        float SecondSpawnExplosionForce = Random.Range(FragmentExplosionForce.x, FragmentExplosionForce.y);
+
         //Get two random rotations to apply to the asteroids when spawning them in
         Quaternion FirstSpawnRotation = Quaternion.Euler(0f, 0f, Random.Range(-360f, 360f));
         Quaternion SecondSpawnRotation = Quaternion.Euler(0f, 0f, Random.Range(-360f, 360f));
@@ -116,12 +135,14 @@ public class AsteroidManager : MonoBehaviour
 
         //Spawn in the first prefab and add it to the tracking list with all the others
         GameObject FirstSpawn = Instantiate(FirstPrefab, FirstSpawnPos, FirstSpawnRotation);
+        FirstSpawn.GetComponent<AsteroidDrift>().ApplyExplosionForce(FirstSpawnExplosionDirection * FirstSpawnExplosionForce);
         ActiveAsteroids.Add(FirstSpawn);
 
         //Spawn and track the 2nd prefab if adding the first one didnt cause us to reach the max asteroid count
-        if(ActiveAsteroids.Count < MaxAsteroidCount)
+        if (ActiveAsteroids.Count < MaxAsteroidCount)
         {
             GameObject SecondSpawn = Instantiate(SecondPrefab, SecondSpawnPos, SecondSpawnRotation);
+            SecondSpawn.GetComponent<AsteroidDrift>().ApplyExplosionForce(SecondSpawnExplosionDirection * SecondSpawnExplosionForce);
             ActiveAsteroids.Add(SecondSpawn);
         }
     }

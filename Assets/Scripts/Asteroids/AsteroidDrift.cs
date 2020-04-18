@@ -9,6 +9,8 @@ using UnityEngine;
 public class AsteroidDrift : MonoBehaviour
 {
     //Drift
+    private bool ExplosionForce = false;    //Tracks if there has been an explosion force that has blown this asteroid away
+    private Vector3 ForceDirection; //Medium and Small asteroids are blown away from the explosion when the large asteroid is broken down
     private float MoveSpeed;    //Current movement speed
     public Vector2 MoveSpeedRange = new Vector2(0.15f, 0.5f);  //Available movement speeds
     private Vector3 DriftDirection; //Current direction of travel
@@ -31,8 +33,12 @@ public class AsteroidDrift : MonoBehaviour
 
     private void Update()
     {
-        //Drift around
-        Vector3 NewPos = transform.position + DriftDirection * MoveSpeed * Time.deltaTime;
+        //Do nothing while the game is paused
+        if (GameState.Instance.GamePaused)
+            return;
+
+        //Use the explosion force, or the random drift direction if there isnt one to apply movement to the asteroid
+        Vector3 NewPos = transform.position + (ExplosionForce ? ForceDirection : DriftDirection) * MoveSpeed * Time.deltaTime;
         NewPos = ScreenBounds.WrapPosInside(NewPos);
         transform.position = NewPos;
 
@@ -44,5 +50,12 @@ public class AsteroidDrift : MonoBehaviour
             CurrentRotation -= 360f;
         Quaternion NewRotation = Quaternion.Euler(0f, 0f, CurrentRotation);
         transform.rotation = NewRotation;
+    }
+
+    //Applies explosion force to the asteroid from its parent asteroid blowing up
+    public void ApplyExplosionForce(Vector3 ForceDirection)
+    {
+        ExplosionForce = true;
+        this.ForceDirection = ForceDirection;
     }
 }

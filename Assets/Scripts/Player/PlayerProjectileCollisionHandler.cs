@@ -23,12 +23,15 @@ public class PlayerProjectileCollisionHandler : MonoBehaviour
         //Saucer enemies are killed on contact
         else if(collision.transform.CompareTag("Saucer"))
         {
-            //Play the killing sound effect, award points for the kill and destroy the saucer and projectile
+            //Play the killing sound effect and award points for it
             SoundEffectsPlayer.Instance.PlaySound("EnemyDie");
             SaucerSizes Size = collision.transform.GetComponent<SaucerSize>().MySize;
             GameState.Instance.IncreaseScore((int)(Size == SaucerSizes.Small ? ScoreValues.SmallSaucer : ScoreValues.LargeSaucer));
+            //Destroy the saucer enemy the this projectile
             Destroy(collision.gameObject);
             Destroy(gameObject);
+            //Stop the saucer from being tracked as active
+            GameState.Instance.SaucerDestroyed();
         }
     }
 }

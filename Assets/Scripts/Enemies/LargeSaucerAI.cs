@@ -21,6 +21,11 @@ public class LargeSaucerAI : MonoBehaviour
     private float FiringCooldownLeft = 2.5f;    //Seconds left until the saucer can fire another projectile
     private float ProjectileSpawnDistance = 0.75f;  //How far away from the saucer to spawn in its projectiles
 
+    //Death
+    public Animator AnimationController;
+    private bool IsDead = false;
+    private float DeathAnimLeft = 0.333f;
+
     private void Start()
     {
         //Get a random target location to wander towards
@@ -29,14 +34,27 @@ public class LargeSaucerAI : MonoBehaviour
 
     private void Update()
     {
-        //Update target location periodically
-        UpdateTarget();
+        //Do nothing while the game is paused
+        if (GameState.Instance.GamePaused)
+            return;
 
-        //Seek towards current target
-        SeekTarget();
+        if(!IsDead && GameState.Instance.PlayerShip != null)
+        {
+            //Update target location periodically
+            UpdateTarget();
 
-        //Fire random projectiles around
-        FireProjectiles();
+            //Seek towards current target
+            SeekTarget();
+
+            //Fire random projectiles around
+            FireProjectiles();
+        }
+        else
+        {
+            DeathAnimLeft -= Time.deltaTime;
+            if (DeathAnimLeft <= 0.0f)
+                Destroy(gameObject);
+        }
     }
 
     //Causes a new target to be acquired when the current target has been reached, or the timer has expired
@@ -93,17 +111,14 @@ public class LargeSaucerAI : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        //Turn back and go in the opposite direction after colliding with any asteroid
         if(collision.transform.CompareTag("Asteroid"))
         {
-            //Get the direction to the asteroid we just hit, and the distance we were from our current target position
-            Vector3 AsteroidDirection = Vector3.Normalize(collision.transform.position - transform.position);
-            float TargetDistance = Vector3.Distance(transform.position, TargetPos);
-
-            //Make a new target position, moving away from the asteroid we just hit into
-            Vector3 NewTargetPos = transform.position - AsteroidDirection * TargetDistance;
-            NewTargetPos = ScreenBounds.ClampPosInside(NewTargetPos);
-            TargetPos = NewTargetPos;
+            AnimationController.SetTrigger("Death");
+            IsDead = true;
+            Destroy(GetComponent<Rigidbody2D>());
+            Destroy(GetComponent<PolygonCollider2D>());
+            SoundEffectsPlayer.Instance.PlaySound("EnemyDie");
+            GameState.Instance.SaucerDestroyed();
         }
     }
 }

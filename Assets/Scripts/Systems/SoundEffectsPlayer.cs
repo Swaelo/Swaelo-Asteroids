@@ -23,11 +23,10 @@ public class SoundEffectsPlayer : MonoBehaviour
     public AudioSource SoundPlayer; //Used to play the sound effects
 
     //Takes the name of a sound effect and plays it if it can be found in the dictionary
-    public void PlaySound(string SoundName, float VolumeScale = 1.0f)
+    public void PlaySound(string SoundName, float VolumeScale = 0.35f)
     {
         //Make sure the volume level is appropriate
         VolumeScale = Mathf.Clamp(VolumeScale, 0f, 1f);
-        VolumeScale *= 0.35f;
 
         //Look through all the sounds in the dictionary
         for(int i = 0; i < SoundDictionary.Length; i++)

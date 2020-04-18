@@ -24,6 +24,11 @@ public class SmallSaucerAI : MonoBehaviour
     private float ProjectileSpawnDistance = 0.5f;   //How far away from the saucer to spawn in its projectiles
     private Vector2 AimOffsetRange = new Vector2(0.85f, 2.5f); //How far away from the player to aim the projectiles
 
+    //Death
+    public Animator AnimationController;    //Used to trigger playback of the death animation
+    private bool IsDead = false;    //Tracks when the saucer is dead
+    private float DeathAnimLeft = 0.333f;   //How long until the death animation finishes playing out
+
     private void Start()
     {
         TargetPos = GetOffsetPlayerPos(TargetOffsetRange);
@@ -31,9 +36,24 @@ public class SmallSaucerAI : MonoBehaviour
 
     private void Update()
     {
-        UpdateTarget();
-        SeekPlayer();
-        FireProjectiles();
+        //Do nothing while the game is paused
+        if (GameState.Instance.GamePaused)
+            return;
+
+        //Perform normal behaviours while both the saucer and player are alive
+        if(!IsDead && GameState.Instance.PlayerShip != null)
+        {
+            UpdateTarget();
+            SeekPlayer();
+            FireProjectiles();
+        }
+        //Otherwise playout death animation before the saucer destroys itself
+        else
+        {
+            DeathAnimLeft -= Time.deltaTime;
+            if (DeathAnimLeft <= 0.0f)
+                Destroy(gameObject);
+        }
     }
 
     //Periodically updates the target location offset from players location
@@ -96,5 +116,19 @@ public class SmallSaucerAI : MonoBehaviour
         OffsetPos.y += PositiveYOffset ? YOffset : -YOffset;
         OffsetPos = ScreenBounds.ClampPosInside(OffsetPos);
         return OffsetPos;
+    }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        //Saucers die if they collide with any asteroids
+        if(collision.transform.CompareTag("Asteroid"))
+        {
+            AnimationController.SetTrigger("Death");
+            IsDead = true;
+            Destroy(GetComponent<Rigidbody2D>());
+            Destroy(GetComponent<PolygonCollider2D>());
+            SoundEffectsPlayer.Instance.PlaySound("EnemyDie");
+            GameState.Instance.SaucerDestroyed();
+        }
     }
 }
